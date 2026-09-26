@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ML Quest</title>
+<meta name="description" content="Juan Marcos Bruno's machine-learning projects, shown as levels on a game map.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* One deliberate look: a night-time game overworld. Same palette as the map. */
+  :root{
+    color-scheme: dark;
+    --page:#0B1220; --panel:#111C2E; --panel2:#15233A; --line:#243552;
+    --text:#EEF3FA; --soft:#9AA9C0;
+    --gold:#FFC247; --gold-dk:#5C3F00; --green:#34C98B; --green-dk:#0F4A33;
+    --slate:#3A4A63; --trail:#F2D492; --focus:#8FC3FF;
+    --px:"Pixelify Sans", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  *{ box-sizing:border-box; }
+  html{ background:var(--page); }
+  body{ margin:0; background:var(--page); color:var(--text); font-family:var(--body); font-size:16px; line-height:1.55; }
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+  .wrap{ max-width:1000px; margin:0 auto; padding-inline:20px; }
+
+  header{ padding-block:44px 22px; display:grid; gap:12px; }
+  .eyebrow{ font-family:var(--px); font-weight:500; font-size:.9rem; letter-spacing:.12em; color:var(--gold); }
+  h1{ font-family:var(--px); font-weight:700; font-size:clamp(2rem, 1.4rem + 3vw, 3.4rem); line-height:1.05; margin:0; text-wrap:balance; }
+  .tagline{ margin:0; max-width:60ch; color:var(--soft); font-size:1.08rem; }
+  .who{ display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; font-size:.95rem; }
+  .who .role{ color:var(--text); font-weight:600; }
+  .who a{ color:var(--soft); text-decoration:none; border-bottom:1px solid var(--line); }
+  .who a:hover{ color:var(--trail); border-color:var(--trail); }
+
+  /* HUD */
+  .hud{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-block:6px 18px; }
+  .hud div{ background:var(--panel); border:2px solid var(--line); padding:12px 14px; display:grid; gap:2px; }
+  .hud .k{ font-family:var(--px); font-weight:500; font-size:.78rem; letter-spacing:.1em; color:var(--soft); }
+  .hud .v{ font-family:var(--px); font-weight:700; font-size:1.7rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .hud .v small{ font-family:var(--body); font-weight:500; font-size:.9rem; color:var(--soft); margin-left:6px; }
+  .hud .gold{ color:var(--gold); } .hud .green{ color:var(--green); }
+
+  /* map */
+  .map-frame{ overflow-x:auto; border-radius:14px; }
+  .map-frame svg{ display:block; width:100%; min-width:720px; height:auto; }
+  .node{ cursor:pointer; outline:none; }
+  .node .hit{ stroke:transparent; stroke-width:2; transition:stroke .15s; }
+  .node:hover .hit{ stroke:var(--line); }
+  .node:focus-visible .hit, .node.active .hit{ stroke:var(--trail); stroke-dasharray:4 5; }
+  .hint{ font-family:var(--px); font-weight:500; font-size:.85rem; color:var(--soft); margin:10px 2px 0; letter-spacing:.04em; }
+
+  /* level panel */
+  .panel{
+    margin-top:18px; background:var(--panel); border:2px solid var(--line);
+    padding:22px 24px; display:grid; grid-template-columns: 1.1fr 1fr; gap:22px 32px;
+  }
+  .panel .status{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--px); font-weight:700; font-size:.82rem;
+    letter-spacing:.08em; padding:4px 10px; width:max-content;
+  }
+  .status.cleared{ background:var(--green); color:var(--green-dk); }
+  .status.current{ background:var(--gold); color:var(--gold-dk); }
+  .status.locked{ background:var(--slate); color:var(--text); }
+  .panel .lvl{ font-family:var(--px); font-weight:500; color:var(--soft); font-size:.95rem; letter-spacing:.08em; margin-top:12px; }
+  .panel h2{ font-family:var(--px); font-weight:700; font-size:clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem); line-height:1.1; margin:2px 0 14px; text-wrap:balance; }
+  .panel h3{ font-family:var(--px); font-weight:500; font-size:.82rem; letter-spacing:.1em; color:var(--trail); margin:0 0 4px; }
+  .panel p{ margin:0 0 14px; max-width:58ch; }
+  .panel ul.learned{ margin:0 0 16px; padding:0; list-style:none; display:grid; gap:8px; }
+  .panel ul.learned li{ display:grid; grid-template-columns:14px 1fr; gap:10px; }
+  .panel ul.learned li::before{ content:""; width:8px; height:8px; margin-top:.55em; background:var(--gold); }
+  .panel ul.criteria{ margin:0 0 16px; padding:0; list-style:none; display:grid; gap:8px; }
+  .panel ul.criteria li{ display:grid; grid-template-columns:22px 1fr; gap:10px; color:var(--soft); }
+  .panel ul.criteria li::before{ content:""; width:14px; height:14px; margin-top:.3em; border:2px solid var(--slate); }
+  .panel ul.criteria li.done{ color:var(--text); }
+  .panel ul.criteria li.done::before{ background:var(--green); border-color:var(--green); box-shadow: inset 0 0 0 3px var(--panel); }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .chips span{ font-family:var(--mono); font-size:.78rem; padding:3px 8px; background:var(--panel2); border:1px solid var(--line); color:var(--text); }
+  .btn{
+    display:inline-block; font-family:var(--px); font-weight:700; font-size:.95rem; letter-spacing:.06em;
+    text-decoration:none; padding:10px 16px; background:var(--gold); color:var(--gold-dk);
+    box-shadow: 0 4px 0 var(--gold-dk); transition: transform .08s, box-shadow .08s;
+  }
+  .btn:hover{ transform:translateY(2px); box-shadow:0 2px 0 var(--gold-dk); }
+  .muted{ color:var(--soft); }
+
+  /* inventory */
+  section.inventory{ margin-top:46px; }
+  section.inventory h2{ font-family:var(--px); font-weight:700; font-size:1.5rem; margin:0 0 4px; }
+  section.inventory p.sub{ margin:0 0 16px; color:var(--soft); }
+  .items{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:10px; }
+  .item{
+    display:grid; grid-template-columns:40px 1fr; gap:12px; align-items:start;
+    background:var(--panel); border:2px solid var(--line); padding:14px; text-decoration:none;
+    transition:border-color .15s;
+  }
+  .item:hover{ border-color:var(--trail); }
+  .item .gem{ width:40px; height:40px; display:grid; place-items:center; background:var(--panel2); border:2px solid var(--line); }
+  .item .gem i{ width:14px; height:14px; transform:rotate(45deg); background:var(--gold); box-shadow: 0 0 0 3px var(--gold-dk) inset; }
+  .item b{ display:block; font-weight:600; line-height:1.35; }
+  .item span{ font-size:.85rem; color:var(--soft); }
+
+  section.ai-note{ margin-top:40px; border-top:2px solid var(--line); padding-top:22px; }
+  section.ai-note h2{ font-family:var(--px); font-weight:700; font-size:1.2rem; margin:0 0 8px; color:var(--trail); }
+  section.ai-note p{ margin:0; max-width:68ch; color:var(--soft); }
+  footer{ padding-block:40px 48px; color:var(--soft); font-size:.9rem; display:flex; flex-wrap:wrap; gap:8px 18px; }
+  footer a{ color:var(--soft); }
+
+  @media (max-width: 720px){
+    .panel{ grid-template-columns:1fr; padding:18px; }
+    .hud .v{ font-size:1.35rem; }
+    .hud .v small{ display:block; margin-left:0; }
+  }
+  @media (max-width: 420px){
+    .hud{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce){ .btn, .node .hit{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ML QUEST · PLAYER 1</div>
+    <h1 id="name">Juan Marcos Bruno</h1>
+    <p class="tagline" id="tagline"></p>
+    <div class="who">
+      <span class="role" id="role"></span>
+      <a id="gh" href="#" target="_blank" rel="noopener">GitHub</a>
+      <a id="li" href="#" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="hud" id="hud"></div>
+
+  <div class="map-frame">
+<!--MAP-->
+  </div>
+  <p class="hint">▶ Click a level to see what it covered.</p>
+
+  <article class="panel" id="panel" aria-live="polite"></article>
+
+  <section class="inventory">
+    <h2>Items collected</h2>
+    <p class="sub">Certificates earned before and alongside the projects.</p>
+    <div class="items" id="items"></div>
+  </section>
+
+  <section class="ai-note">
+    <h2>How I use AI</h2>
+    <p id="ainote"></p>
+  </section>
+
+  <footer>
+    <span>Every level is a real project on GitHub, finished end to end.</span>
+    <a id="gh2" href="#" target="_blank" rel="noopener">github.com/jmb-python-developer</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var DATA = /*LEVELS_JSON*/null;
+  var byId = {};
+  DATA.levels.forEach(function(l){ byId[l.id] = l; });
+  var WORD = { cleared:"CLEARED", current:"IN PROGRESS", locked:"LOCKED" };
+
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // header
+  var p = DATA.player;
+  document.getElementById("tagline").textContent = p.tagline;
+  document.getElementById("role").textContent = p.title;
+  document.getElementById("ainote").textContent = p.ai_note;
+  ["gh","gh2"].forEach(function(id){ document.getElementById(id).href = p.github; });
+  document.getElementById("li").href = p.linkedin;
+
+  // HUD
+  var cleared = DATA.levels.filter(function(l){ return l.status === "cleared"; }).length;
+  var cur = DATA.levels.filter(function(l){ return l.status === "current"; })[0];
+  var hud = document.getElementById("hud");
+  [["LEVELS CLEARED", String(cleared), "green", ""],
+   ["CURRENT LEVEL", cur ? cur.num : "—", "gold", cur ? cur.short : ""],
+   ["ITEMS", String(DATA.inventory.length), "", "certificates"]].forEach(function(h){
+    var d = el("div"); d.appendChild(el("span","k",h[0]));
+    var v = el("span","v " + h[2], h[1]); if (h[3]) v.appendChild(el("small", null, h[3]));
+    d.appendChild(v); hud.appendChild(d);
+  });
+
+  // inventory
+  var items = document.getElementById("items");
+  DATA.inventory.forEach(function(it){
+    var a = el("a","item"); a.href = it.url; a.target = "_blank"; a.rel = "noopener";
+    var g = el("span","gem"); g.appendChild(el("i")); a.appendChild(g);
+    var t = el("span"); t.appendChild(el("b", null, it.name)); t.appendChild(el("span", null, it.issuer));
+    a.appendChild(t); items.appendChild(a);
+  });
+
+  // level panel
+  var panel = document.getElementById("panel");
+  function show(id, fromUser){
+    var l = byId[id]; if (!l) return;
+    document.querySelectorAll(".node").forEach(function(n){ n.classList.toggle("active", n.getAttribute("data-id") === id); });
+    panel.innerHTML = "";
+    var left = el("div"), right = el("div");
+    left.appendChild(el("span","status " + l.status, WORD[l.status]));
+    left.appendChild(el("div","lvl", l.eyebrow || "LEVEL " + l.num));
+    left.appendChild(el("h2", null, l.name));
+    left.appendChild(el("h3", null, "MISSION"));
+    left.appendChild(el("p", null, l.mission));
+    left.appendChild(el("h3", null, l.status === "cleared" ? "RESULT" : "STATUS"));
+    left.appendChild(el("p", null, l.result));
+    if (l.criteria){
+      right.appendChild(el("h3", null, "UNLOCK CONDITIONS"));
+      var cl = el("ul","criteria");
+      l.criteria.forEach(function(c){ var li = el("li", c.done ? "done" : null, c.text); cl.appendChild(li); });
+      right.appendChild(cl);
+    } else if (l.learned.length){
+      right.appendChild(el("h3", null, l.status === "cleared" ? "WHAT I LEARNED" : "WHAT I'LL LEARN"));
+      var ul = el("ul","learned"); l.learned.forEach(function(x){ ul.appendChild(el("li", null, x)); });
+      right.appendChild(ul);
+      right.appendChild(el("h3", null, "SKILLS"));
+      var ch = el("div","chips"); l.skills.forEach(function(s){ ch.appendChild(el("span", null, s)); });
+      right.appendChild(ch);
+    } else {
+      right.appendChild(el("h3", null, "DETAILS"));
+      right.appendChild(el("p","muted","The next world on the map. Details appear when it opens."));
+    }
+    if (l.repo){
+      var a = el("a","btn", l.status === "cleared" ? "▶ OPEN PROJECT" : "▶ FOLLOW PROGRESS");
+      a.href = l.repo; a.target = "_blank"; a.rel = "noopener"; right.appendChild(a);
+    }
+    panel.appendChild(left); panel.appendChild(right);
+    if (fromUser){ try { history.replaceState(null, "", "#lvl-" + id); } catch(e){} }
+  }
+
+  document.querySelectorAll(".node").forEach(function(n){
+    var id = n.getAttribute("data-id");
+    n.addEventListener("click", function(){ show(id, true); });
+    n.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); show(id, true); }
+    });
+  });
+
+  var fromHash = (location.hash || "").replace(/^#lvl-/, "");
+  show(byId[fromHash] ? fromHash : (cur ? cur.id : DATA.levels[0].id), false);
+})();
+</script>
+</body>
+</html>

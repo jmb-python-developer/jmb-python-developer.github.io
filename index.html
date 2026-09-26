@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ML Quest</title>
+<meta name="description" content="Juan Marcos Bruno's machine-learning projects, shown as levels on a game map.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* One deliberate look: a night-time game overworld. Same palette as the map. */
+  :root{
+    color-scheme: dark;
+    --page:#0B1220; --panel:#111C2E; --panel2:#15233A; --line:#243552;
+    --text:#EEF3FA; --soft:#9AA9C0;
+    --gold:#FFC247; --gold-dk:#5C3F00; --green:#34C98B; --green-dk:#0F4A33;
+    --slate:#3A4A63; --trail:#F2D492; --focus:#8FC3FF;
+    --px:"Pixelify Sans", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  *{ box-sizing:border-box; }
+  html{ background:var(--page); }
+  body{ margin:0; background:var(--page); color:var(--text); font-family:var(--body); font-size:16px; line-height:1.55; }
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+  .wrap{ max-width:1000px; margin:0 auto; padding-inline:20px; }
+
+  header{ padding-block:44px 22px; display:grid; gap:12px; }
+  .eyebrow{ font-family:var(--px); font-weight:500; font-size:.9rem; letter-spacing:.12em; color:var(--gold); }
+  h1{ font-family:var(--px); font-weight:700; font-size:clamp(2rem, 1.4rem + 3vw, 3.4rem); line-height:1.05; margin:0; text-wrap:balance; }
+  .tagline{ margin:0; max-width:60ch; color:var(--soft); font-size:1.08rem; }
+  .who{ display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; font-size:.95rem; }
+  .who .role{ color:var(--text); font-weight:600; }
+  .who a{ color:var(--soft); text-decoration:none; border-bottom:1px solid var(--line); }
+  .who a:hover{ color:var(--trail); border-color:var(--trail); }
+
+  /* HUD */
+  .hud{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-block:6px 18px; }
+  .hud div{ background:var(--panel); border:2px solid var(--line); padding:12px 14px; display:grid; gap:2px; }
+  .hud .k{ font-family:var(--px); font-weight:500; font-size:.78rem; letter-spacing:.1em; color:var(--soft); }
+  .hud .v{ font-family:var(--px); font-weight:700; font-size:1.7rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .hud .v small{ font-family:var(--body); font-weight:500; font-size:.9rem; color:var(--soft); margin-left:6px; }
+  .hud .gold{ color:var(--gold); } .hud .green{ color:var(--green); }
+
+  /* map */
+  .map-frame{ overflow-x:auto; border-radius:14px; }
+  .map-frame svg{ display:block; width:100%; min-width:720px; height:auto; }
+  .node{ cursor:pointer; outline:none; }
+  .node .hit{ stroke:transparent; stroke-width:2; transition:stroke .15s; }
+  .node:hover .hit{ stroke:var(--line); }
+  .node:focus-visible .hit, .node.active .hit{ stroke:var(--trail); stroke-dasharray:4 5; }
+  .hint{ font-family:var(--px); font-weight:500; font-size:.85rem; color:var(--soft); margin:10px 2px 0; letter-spacing:.04em; }
+
+  /* level panel */
+  .panel{
+    margin-top:18px; background:var(--panel); border:2px solid var(--line);
+    padding:22px 24px; display:grid; grid-template-columns: 1.1fr 1fr; gap:22px 32px;
+  }
+  .panel .status{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--px); font-weight:700; font-size:.82rem;
+    letter-spacing:.08em; padding:4px 10px; width:max-content;
+  }
+  .status.cleared{ background:var(--green); color:var(--green-dk); }
+  .status.current{ background:var(--gold); color:var(--gold-dk); }
+  .status.locked{ background:var(--slate); color:var(--text); }
+  .panel .lvl{ font-family:var(--px); font-weight:500; color:var(--soft); font-size:.95rem; letter-spacing:.08em; margin-top:12px; }
+  .panel h2{ font-family:var(--px); font-weight:700; font-size:clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem); line-height:1.1; margin:2px 0 14px; text-wrap:balance; }
+  .panel h3{ font-family:var(--px); font-weight:500; font-size:.82rem; letter-spacing:.1em; color:var(--trail); margin:0 0 4px; }
+  .panel p{ margin:0 0 14px; max-width:58ch; }
+  .panel ul.learned{ margin:0 0 16px; padding:0; list-style:none; display:grid; gap:8px; }
+  .panel ul.learned li{ display:grid; grid-template-columns:14px 1fr; gap:10px; }
+  .panel ul.learned li::before{ content:""; width:8px; height:8px; margin-top:.55em; background:var(--gold); }
+  .panel ul.criteria{ margin:0 0 16px; padding:0; list-style:none; display:grid; gap:8px; }
+  .panel ul.criteria li{ display:grid; grid-template-columns:22px 1fr; gap:10px; color:var(--soft); }
+  .panel ul.criteria li::before{ content:""; width:14px; height:14px; margin-top:.3em; border:2px solid var(--slate); }
+  .panel ul.criteria li.done{ color:var(--text); }
+  .panel ul.criteria li.done::before{ background:var(--green); border-color:var(--green); box-shadow: inset 0 0 0 3px var(--panel); }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .chips span{ font-family:var(--mono); font-size:.78rem; padding:3px 8px; background:var(--panel2); border:1px solid var(--line); color:var(--text); }
+  .btn{
+    display:inline-block; font-family:var(--px); font-weight:700; font-size:.95rem; letter-spacing:.06em;
+    text-decoration:none; padding:10px 16px; background:var(--gold); color:var(--gold-dk);
+    box-shadow: 0 4px 0 var(--gold-dk); transition: transform .08s, box-shadow .08s;
+  }
+  .btn:hover{ transform:translateY(2px); box-shadow:0 2px 0 var(--gold-dk); }
+  .muted{ color:var(--soft); }
+
+  /* inventory */
+  section.inventory{ margin-top:46px; }
+  section.inventory h2{ font-family:var(--px); font-weight:700; font-size:1.5rem; margin:0 0 4px; }
+  section.inventory p.sub{ margin:0 0 16px; color:var(--soft); }
+  .items{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:10px; }
+  .item{
+    display:grid; grid-template-columns:40px 1fr; gap:12px; align-items:start;
+    background:var(--panel); border:2px solid var(--line); padding:14px; text-decoration:none;
+    transition:border-color .15s;
+  }
+  .item:hover{ border-color:var(--trail); }
+  .item .gem{ width:40px; height:40px; display:grid; place-items:center; background:var(--panel2); border:2px solid var(--line); }
+  .item .gem i{ width:14px; height:14px; transform:rotate(45deg); background:var(--gold); box-shadow: 0 0 0 3px var(--gold-dk) inset; }
+  .item b{ display:block; font-weight:600; line-height:1.35; }
+  .item span{ font-size:.85rem; color:var(--soft); }
+
+  section.ai-note{ margin-top:40px; border-top:2px solid var(--line); padding-top:22px; }
+  section.ai-note h2{ font-family:var(--px); font-weight:700; font-size:1.2rem; margin:0 0 8px; color:var(--trail); }
+  section.ai-note p{ margin:0; max-width:68ch; color:var(--soft); }
+  footer{ padding-block:40px 48px; color:var(--soft); font-size:.9rem; display:flex; flex-wrap:wrap; gap:8px 18px; }
+  footer a{ color:var(--soft); }
+
+  @media (max-width: 720px){
+    .panel{ grid-template-columns:1fr; padding:18px; }
+    .hud .v{ font-size:1.35rem; }
+    .hud .v small{ display:block; margin-left:0; }
+  }
+  @media (max-width: 420px){
+    .hud{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce){ .btn, .node .hit{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ML QUEST · PLAYER 1</div>
+    <h1 id="name">Juan Marcos Bruno</h1>
+    <p class="tagline" id="tagline"></p>
+    <div class="who">
+      <span class="role" id="role"></span>
+      <a id="gh" href="#" target="_blank" rel="noopener">GitHub</a>
+      <a id="li" href="#" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="hud" id="hud"></div>
+
+  <div class="map-frame">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" width="960" height="400" role="img" aria-labelledby="mapTitle" class="map">
+<title id="mapTitle">ML Quest world map: levels 1.0 and 1.2 cleared, level 1.3 in progress, then level 1.4, a World 1 achievement, World 2 and Deep Learning ahead.</title>
+<style>
+      .px{font-family:'Pixelify Sans',ui-monospace,'SFMono-Regular',Menlo,monospace;font-weight:700;}
+      .px5{font-family:'Pixelify Sans',ui-monospace,'SFMono-Regular',Menlo,monospace;font-weight:500;}
+      .pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.6s ease-out infinite;}
+      @keyframes pulse{0%{opacity:.9;transform:scale(.85)}100%{opacity:0;transform:scale(1.35)}}
+      .you{animation:bob 1.2s ease-in-out infinite alternate;}
+      @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+      .twinkle{animation:tw 3s ease-in-out infinite alternate;}
+      @keyframes tw{from{opacity:.25}to{opacity:.9}}
+      @media (prefers-reduced-motion:reduce){.pulse,.you,.twinkle{animation:none}}
+    </style>
+<rect width="960" height="400" rx="14" fill="#0E1726"/>
+<rect class="twinkle" style="animation-delay:0.0s" x="40" y="40" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="130" y="70" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="210" y="30" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect class="twinkle" style="animation-delay:1.2s" x="330" y="55" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="420" y="25" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="520" y="60" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect class="twinkle" style="animation-delay:0.4s" x="640" y="35" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="700" y="80" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="790" y="40" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect class="twinkle" style="animation-delay:1.6s" x="900" y="65" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="60" y="120" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="380" y="110" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect class="twinkle" style="animation-delay:0.8s" x="560" y="120" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="930" y="130" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect x="270" y="100" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<rect class="twinkle" style="animation-delay:0.0s" x="860" y="110" width="3" height="3" fill="#C9D6EA" opacity=".6"/>
+<path d="M0,250 C120,210 220,240 330,225 C450,205 560,240 680,220 C800,200 890,230 960,215 V386 a14,14 0 0 1 -14,14 H14 a14,14 0 0 1 -14,-14 Z" fill="#15233A"/>
+<path d="M0,320 C150,300 260,330 400,315 C540,300 660,330 800,310 C880,300 930,310 960,305 V386 a14,14 0 0 1 -14,14 H14 a14,14 0 0 1 -14,-14 Z" fill="#1B2D48"/>
+<rect x="655.0" y="0" width="305.0" height="400" fill="#0B1220" opacity=".45"/>
+<line x1="655.0" y1="24" x2="655.0" y2="376" stroke="#9AA9C0" stroke-width="2" stroke-dasharray="4 8" opacity=".5"/>
+<text x="28" y="40" class="px" font-size="18" fill="#EEF3FA" letter-spacing="1">WORLD 1</text><text x="28" y="60" class="px5" font-size="12" fill="#9AA9C0" letter-spacing="1">CLASSIC MACHINE LEARNING</text>
+<text x="675.0" y="40" class="px" font-size="18" fill="#9AA9C0" letter-spacing="1">BEYOND</text><text x="675.0" y="60" class="px5" font-size="12" fill="#9AA9C0" letter-spacing="1">COMING UP</text>
+<path d="M90,278 C110.0,263.3 170.0,188.8 210,190" fill="none" stroke="#F2D492" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<path d="M210,190 C250.0,191.2 290.0,286.7 330,285" fill="none" stroke="#F2D492" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<path d="M330,285 C370.0,283.3 407.5,185.8 450,180" fill="none" stroke="#34455F" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<path d="M450,180 C492.5,174.2 539.2,233.3 585,250" fill="none" stroke="#34455F" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<path d="M585,250 C630.8,266.7 677.5,288.3 725,280" fill="none" stroke="#34455F" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<path d="M725,280 C772.5,271.7 845.8,213.3 870,200" fill="none" stroke="#34455F" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="square"/>
+<g class="node" data-id="1-0" tabindex="0" role="button" aria-label="Level 1.0: Exam Score Predictor, Cleared">
+<rect class="hit" x="42" y="232" width="96" height="112" fill="transparent"/>
+<polygon points="74,256 106,256 112,262 112,294 106,300 74,300 68,294 68,262" fill="#34C98B" stroke="#0E1726" stroke-width="3"/><polyline points="80,279 87,286 101,270" fill="none" stroke="#0F4A33" stroke-width="5" stroke-linecap="square"/>
+<text x="90" y="328" text-anchor="middle" class="px" font-size="15" fill="#EEF3FA">1.0</text>
+<text x="90" y="344" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Exam Scores</text>
+</g>
+<g class="node" data-id="1-2" tabindex="0" role="button" aria-label="Level 1.2: Customer Churn Prediction, Cleared">
+<rect class="hit" x="162" y="144" width="96" height="112" fill="transparent"/>
+<polygon points="194,168 226,168 232,174 232,206 226,212 194,212 188,206 188,174" fill="#34C98B" stroke="#0E1726" stroke-width="3"/><polyline points="200,191 207,198 221,182" fill="none" stroke="#0F4A33" stroke-width="5" stroke-linecap="square"/>
+<text x="210" y="240" text-anchor="middle" class="px" font-size="15" fill="#EEF3FA">1.2</text>
+<text x="210" y="256" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Churn</text>
+</g>
+<g class="node" data-id="1-3" tabindex="0" role="button" aria-label="Level 1.3: Credit Risk Scoring, In progress">
+<rect class="hit" x="282" y="239" width="96" height="112" fill="transparent"/>
+<rect class="pulse" x="299" y="254" width="62" height="62" rx="6" fill="none" stroke="#FFC247" stroke-width="3"/><polygon points="314,263 346,263 352,269 352,301 346,307 314,307 308,301 308,269" fill="#FFC247" stroke="#0E1726" stroke-width="3"/><polygon points="330.0,273.0 332.9,281.0 341.4,281.3 334.8,286.5 337.1,294.7 330.0,290.0 322.9,294.7 325.2,286.5 318.6,281.3 327.1,281.0" fill="#5C3F00"/>
+<text x="330" y="335" text-anchor="middle" class="px" font-size="15" fill="#EEF3FA">1.3</text>
+<text x="330" y="351" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Credit Risk</text>
+</g>
+<g class="node" data-id="1-4" tabindex="0" role="button" aria-label="Level 1.4: Model Serving, Locked">
+<rect class="hit" x="402" y="134" width="96" height="112" fill="transparent"/>
+<polygon points="434,158 466,158 472,164 472,196 466,202 434,202 428,196 428,164" fill="#3A4A63" stroke="#0E1726" stroke-width="3"/><rect x="442" y="178" width="16" height="12" fill="#8E9CB3"/><path d="M445,178 v-4 a5,5 0 0 1 10,0 v4" fill="none" stroke="#8E9CB3" stroke-width="3"/>
+<text x="450" y="230" text-anchor="middle" class="px" font-size="15" fill="#9AA9C0">1.4</text>
+<text x="450" y="246" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Serving</text>
+</g>
+<g class="node" data-id="ach1" tabindex="0" role="button" aria-label="Level ACHIEVEMENT: Regression &amp; Classification · Proficient, Locked">
+<rect class="hit" x="537" y="204" width="96" height="112" fill="transparent"/>
+<g fill="#3A4A63" stroke="#0E1726" stroke-width="2"><path d="M567,224 h36 v10 a18,18 0 0 1 -36,0 z"/><path d="M567,228 h-8 v6 a8,8 0 0 0 8,8" fill="none" stroke="#3A4A63" stroke-width="4"/><path d="M603,228 h8 v6 a8,8 0 0 1 -8,8" fill="none" stroke="#3A4A63" stroke-width="4"/><rect x="581" y="252" width="8" height="10"/><rect x="571" y="262" width="28" height="10"/></g><path d="M585,228 l3,6 6,1 -4.5,4 1,6 -5.5,-3 -5.5,3 1,-6 -4.5,-4 6,-1 z" fill="#0B1220"/>
+<text x="585" y="300" text-anchor="middle" class="px" font-size="12" fill="#9AA9C0">ACHIEVEMENT</text>
+<text x="585" y="316" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Proficient</text>
+</g>
+<g class="node" data-id="w2" tabindex="0" role="button" aria-label="Level W2: New Problem Types, Locked">
+<rect class="hit" x="677" y="234" width="96" height="112" fill="transparent"/>
+<path d="M699,302 v-26 a26,26 0 0 1 52,0 v26 z" fill="#3A4A63" stroke="#0E1726" stroke-width="3"/><path d="M713,302 v-14 a12,12 0 0 1 24,0 v14 z" fill="#0B1220"/><text x="725" y="270" text-anchor="middle" class="px" font-size="12" fill="#8E9CB3">?</text>
+<text x="725" y="330" text-anchor="middle" class="px" font-size="15" fill="#9AA9C0">W2</text>
+<text x="725" y="346" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">New problems</text>
+</g>
+<g class="node" data-id="dl" tabindex="0" role="button" aria-label="Level DL: Deep Learning, Locked">
+<rect class="hit" x="822" y="154" width="96" height="112" fill="transparent"/>
+<g fill="#3A4A63" stroke="#0E1726" stroke-width="2"><rect x="836" y="190" width="68" height="34"/><rect x="830" y="170" width="18" height="54"/><rect x="892" y="170" width="18" height="54"/><rect x="859" y="160" width="22" height="30"/><rect x="830" y="162" width="6" height="8"/><rect x="839" y="162" width="6" height="8"/><rect x="892" y="162" width="6" height="8"/><rect x="901" y="162" width="6" height="8"/></g><path d="M862,224 v-14 a8,8 0 0 1 16,0 v14 z" fill="#0B1220"/><rect x="865" y="168" width="10" height="12" fill="#0B1220"/>
+<text x="870" y="250" text-anchor="middle" class="px" font-size="15" fill="#9AA9C0">DL</text>
+<text x="870" y="266" text-anchor="middle" class="px5" font-size="12" fill="#9AA9C0">Deep Learning</text>
+</g>
+<g class="you"><rect x="310" y="217" width="40" height="18" fill="#FFC247"/><polygon points="324,235 336,235 330,243" fill="#FFC247"/><text x="330" y="231" text-anchor="middle" class="px" font-size="12" fill="#5C3F00">YOU</text></g>
+<rect x="670" y="368" width="10" height="10" fill="#34C98B"/><text x="686" y="378" class="px5" font-size="11" fill="#9AA9C0">CLEARED</text>
+<rect x="765" y="368" width="10" height="10" fill="#FFC247"/><text x="781" y="378" class="px5" font-size="11" fill="#9AA9C0">IN PROGRESS</text>
+<rect x="860" y="368" width="10" height="10" fill="#3A4A63"/><text x="876" y="378" class="px5" font-size="11" fill="#9AA9C0">LOCKED</text>
+</svg>
+  </div>
+  <p class="hint">▶ Click a level to see what it covered.</p>
+
+  <article class="panel" id="panel" aria-live="polite"></article>
+
+  <section class="inventory">
+    <h2>Items collected</h2>
+    <p class="sub">Certificates earned before and alongside the projects.</p>
+    <div class="items" id="items"></div>
+  </section>
+
+  <section class="ai-note">
+    <h2>How I use AI</h2>
+    <p id="ainote"></p>
+  </section>
+
+  <footer>
+    <span>Every level is a real project on GitHub, finished end to end.</span>
+    <a id="gh2" href="#" target="_blank" rel="noopener">github.com/jmb-python-developer</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var DATA = {"player": {"name": "Juan Marcos Bruno", "title": "Senior/Lead Software Engineer", "tagline": "15 years building software. Now levelling up in machine learning, one finished project at a time.", "github": "https://github.com/jmb-python-developer", "linkedin": "https://www.linkedin.com/in/juanmarcosbruno/", "ai_note": "I write the modelling code and make the analysis decisions myself: what to explore, which models to compare, how to evaluate them and what the results mean. I use LLMs the way I would on any engineering team: to scaffold projects, handle repetitive boilerplate, talk through concepts, and draft documentation and tooling (including this page), which I review and edit before it ships."}, "levels": [{"id": "1-0", "num": "1.0", "name": "Exam Score Predictor", "short": "Exam Scores", "status": "cleared", "x": 90, "y": 278, "mission": "Predict a student's exam score from five everyday habits: study hours, attendance, sleep, mental health and part-time work.", "result": "Predictions land within about 7 points on a 0–100 score, and the model explains 81% of the variation between students.", "learned": ["The full pipeline once, end to end: explore the data, build features, compare models, ship an app", "Judging models against a simple baseline, so scores mean something", "Keeping the test set untouched until the very end"], "skills": ["Python", "pandas", "scikit-learn", "Regression", "Cross-validation", "Streamlit app"], "repo": "https://github.com/jmb-python-developer/ML-01-exam-scores-prediction", "world": 1}, {"id": "1-2", "num": "1.2", "name": "Customer Churn Prediction", "short": "Churn", "status": "cleared", "x": 210, "y": 190, "mission": "Predict which of a bank's 10,000 customers are about to leave, using account and demographic data.", "result": "When the best model flags a customer as leaving, it is right about 3 times out of 4. It finds about half of the customers who actually leave.", "learned": ["Backing up what the charts suggest with statistical tests", "Why accuracy misleads when most customers stay", "Comparing five different models fairly and picking one on evidence"], "skills": ["Classification", "Hypothesis testing", "Feature scaling", "Pipelines", "Precision & recall", "5-model comparison"], "repo": "https://github.com/jmb-python-developer/ML-02-customer-churn-prediction", "world": 1}, {"id": "1-3", "num": "1.3", "name": "Credit Risk Scoring", "short": "Credit Risk", "status": "current", "x": 330, "y": 285, "mission": "Predict which loan applicants will default, and tune the models so they catch more of the risky ones.", "result": "In progress.", "learned": ["Tuning models instead of accepting their defaults", "Handling data where the important cases are the rare ones", "Choosing the decision cut-off on purpose, based on the cost of each kind of mistake"], "skills": ["Hyperparameter tuning", "Random forest", "XGBoost", "Class imbalance", "Threshold tuning"], "repo": "https://github.com/jmb-python-developer/ML-03-credit-risk-scoring", "world": 1}, {"id": "1-4", "num": "1.4", "name": "Model Serving", "short": "Serving", "status": "locked", "x": 450, "y": 180, "mission": "Turn the 1.3 model into a web service that other software can call, packaged so it runs anywhere.", "result": "Unlocks after 1.3.", "learned": ["Moving from a notebook to a real, repeatable training script", "Serving predictions through an API that rejects bad input", "Packaging the service in a container"], "skills": ["FastAPI", "REST API", "Docker", "Deployment"], "repo": null, "world": 1}, {"id": "ach1", "num": "ACHIEVEMENT", "name": "Regression & Classification · Proficient", "short": "Proficient", "status": "locked", "kind": "trophy", "world": 1, "eyebrow": "WORLD 1 ACHIEVEMENT", "x": 585, "y": 250, "mission": "Awarded for taking regression and classification problems all the way from raw data to a tuned model served as an API.", "result": "Unlocks when level 1.4 is cleared.", "criteria": [{"text": "Regression project, end to end", "done": true}, {"text": "Classification project, end to end", "done": true}, {"text": "Models tuned, with class imbalance handled", "done": false}, {"text": "Model served as an API in a container", "done": false}], "learned": [], "skills": [], "repo": null}, {"id": "w2", "num": "W2", "name": "New Problem Types", "short": "New problems", "status": "locked", "kind": "gate", "x": 725, "y": 280, "mission": "New kinds of machine-learning problems beyond regression and classification.", "result": "Opens after the World 1 achievement.", "learned": [], "skills": [], "repo": null, "world": 2, "eyebrow": "WORLD 2"}, {"id": "dl", "num": "DL", "name": "Deep Learning", "short": "Deep Learning", "status": "locked", "kind": "castle", "x": 870, "y": 200, "mission": "Neural networks and deep learning.", "result": "Opens after World 2.", "learned": [], "skills": [], "repo": null, "world": 3, "eyebrow": "WORLD 3"}], "inventory": [{"name": "Supervised Machine Learning: Regression and Classification", "issuer": "Stanford · DeepLearning.AI", "url": "https://coursera.org/share/48ee7076fd82e9ee42f1a4c788a44fcb"}, {"name": "Advanced Learning Algorithms", "issuer": "Stanford · DeepLearning.AI", "url": "https://coursera.org/share/a6e47389a43a12f003efebdff40f9340"}, {"name": "Unsupervised Learning, Recommenders, Reinforcement Learning", "issuer": "Stanford · DeepLearning.AI", "url": "https://coursera.org/share/a1497bcee3e8886e066ca9f1e3abe669"}, {"name": "Python for Data Science, AI & Development", "issuer": "IBM · Apr 2025", "url": "https://coursera.org/verify/ZM7GAUJNFYFE"}, {"name": "Exploratory Data Analysis for Machine Learning", "issuer": "IBM · Jul 2025", "url": "https://coursera.org/account/accomplishments/verify/KER2N0IYGON5"}]};
+  var byId = {};
+  DATA.levels.forEach(function(l){ byId[l.id] = l; });
+  var WORD = { cleared:"CLEARED", current:"IN PROGRESS", locked:"LOCKED" };
+
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // header
+  var p = DATA.player;
+  document.getElementById("tagline").textContent = p.tagline;
+  document.getElementById("role").textContent = p.title;
+  document.getElementById("ainote").textContent = p.ai_note;
+  ["gh","gh2"].forEach(function(id){ document.getElementById(id).href = p.github; });
+  document.getElementById("li").href = p.linkedin;
+
+  // HUD
+  var cleared = DATA.levels.filter(function(l){ return l.status === "cleared"; }).length;
+  var cur = DATA.levels.filter(function(l){ return l.status === "current"; })[0];
+  var hud = document.getElementById("hud");
+  [["LEVELS CLEARED", String(cleared), "green", ""],
+   ["CURRENT LEVEL", cur ? cur.num : "—", "gold", cur ? cur.short : ""],
+   ["ITEMS", String(DATA.inventory.length), "", "certificates"]].forEach(function(h){
+    var d = el("div"); d.appendChild(el("span","k",h[0]));
+    var v = el("span","v " + h[2], h[1]); if (h[3]) v.appendChild(el("small", null, h[3]));
+    d.appendChild(v); hud.appendChild(d);
+  });
+
+  // inventory
+  var items = document.getElementById("items");
+  DATA.inventory.forEach(function(it){
+    var a = el("a","item"); a.href = it.url; a.target = "_blank"; a.rel = "noopener";
+    var g = el("span","gem"); g.appendChild(el("i")); a.appendChild(g);
+    var t = el("span"); t.appendChild(el("b", null, it.name)); t.appendChild(el("span", null, it.issuer));
+    a.appendChild(t); items.appendChild(a);
+  });
+
+  // level panel
+  var panel = document.getElementById("panel");
+  function show(id, fromUser){
+    var l = byId[id]; if (!l) return;
+    document.querySelectorAll(".node").forEach(function(n){ n.classList.toggle("active", n.getAttribute("data-id") === id); });
+    panel.innerHTML = "";
+    var left = el("div"), right = el("div");
+    left.appendChild(el("span","status " + l.status, WORD[l.status]));
+    left.appendChild(el("div","lvl", l.eyebrow || "LEVEL " + l.num));
+    left.appendChild(el("h2", null, l.name));
+    left.appendChild(el("h3", null, "MISSION"));
+    left.appendChild(el("p", null, l.mission));
+    left.appendChild(el("h3", null, l.status === "cleared" ? "RESULT" : "STATUS"));
+    left.appendChild(el("p", null, l.result));
+    if (l.criteria){
+      right.appendChild(el("h3", null, "UNLOCK CONDITIONS"));
+      var cl = el("ul","criteria");
+      l.criteria.forEach(function(c){ var li = el("li", c.done ? "done" : null, c.text); cl.appendChild(li); });
+      right.appendChild(cl);
+    } else if (l.learned.length){
+      right.appendChild(el("h3", null, l.status === "cleared" ? "WHAT I LEARNED" : "WHAT I'LL LEARN"));
+      var ul = el("ul","learned"); l.learned.forEach(function(x){ ul.appendChild(el("li", null, x)); });
+      right.appendChild(ul);
+      right.appendChild(el("h3", null, "SKILLS"));
+      var ch = el("div","chips"); l.skills.forEach(function(s){ ch.appendChild(el("span", null, s)); });
+      right.appendChild(ch);
+    } else {
+      right.appendChild(el("h3", null, "DETAILS"));
+      right.appendChild(el("p","muted","The next world on the map. Details appear when it opens."));
+    }
+    if (l.repo){
+      var a = el("a","btn", l.status === "cleared" ? "▶ OPEN PROJECT" : "▶ FOLLOW PROGRESS");
+      a.href = l.repo; a.target = "_blank"; a.rel = "noopener"; right.appendChild(a);
+    }
+    panel.appendChild(left); panel.appendChild(right);
+    if (fromUser){ try { history.replaceState(null, "", "#lvl-" + id); } catch(e){} }
+  }
+
+  document.querySelectorAll(".node").forEach(function(n){
+    var id = n.getAttribute("data-id");
+    n.addEventListener("click", function(){ show(id, true); });
+    n.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); show(id, true); }
+    });
+  });
+
+  var fromHash = (location.hash || "").replace(/^#lvl-/, "");
+  show(byId[fromHash] ? fromHash : (cur ? cur.id : DATA.levels[0].id), false);
+})();
+</script>
+</body>
+</html>

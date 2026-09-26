@@ -1,0 +1,209 @@
+{
+  "player": {
+    "name": "Juan Marcos Bruno",
+    "title": "Senior/Lead Software Engineer",
+    "tagline": "15 years building software. Now levelling up in machine learning, one finished project at a time.",
+    "github": "https://github.com/jmb-python-developer",
+    "linkedin": "https://www.linkedin.com/in/juanmarcosbruno/",
+    "ai_note": "I write the modelling code and make the analysis decisions myself: what to explore, which models to compare, how to evaluate them and what the results mean. I use LLMs the way I would on any engineering team: to scaffold projects, handle repetitive boilerplate, talk through concepts, and draft documentation and tooling (including this page), which I review and edit before it ships."
+  },
+  "levels": [
+    {
+      "id": "1-0",
+      "num": "1.0",
+      "name": "Exam Score Predictor",
+      "short": "Exam Scores",
+      "status": "cleared",
+      "x": 90,
+      "y": 278,
+      "mission": "Predict a student's exam score from five everyday habits: study hours, attendance, sleep, mental health and part-time work.",
+      "result": "Predictions land within about 7 points on a 0–100 score, and the model explains 81% of the variation between students.",
+      "learned": [
+        "The full pipeline once, end to end: explore the data, build features, compare models, ship an app",
+        "Judging models against a simple baseline, so scores mean something",
+        "Keeping the test set untouched until the very end"
+      ],
+      "skills": [
+        "Python",
+        "pandas",
+        "scikit-learn",
+        "Regression",
+        "Cross-validation",
+        "Streamlit app"
+      ],
+      "repo": "https://github.com/jmb-python-developer/ML-01-exam-scores-prediction",
+      "world": 1
+    },
+    {
+      "id": "1-2",
+      "num": "1.2",
+      "name": "Customer Churn Prediction",
+      "short": "Churn",
+      "status": "cleared",
+      "x": 210,
+      "y": 190,
+      "mission": "Predict which of a bank's 10,000 customers are about to leave, using account and demographic data.",
+      "result": "When the best model flags a customer as leaving, it is right about 3 times out of 4. It finds about half of the customers who actually leave.",
+      "learned": [
+        "Backing up what the charts suggest with statistical tests",
+        "Why accuracy misleads when most customers stay",
+        "Comparing five different models fairly and picking one on evidence"
+      ],
+      "skills": [
+        "Classification",
+        "Hypothesis testing",
+        "Feature scaling",
+        "Pipelines",
+        "Precision & recall",
+        "5-model comparison"
+      ],
+      "repo": "https://github.com/jmb-python-developer/ML-02-customer-churn-prediction",
+      "world": 1
+    },
+    {
+      "id": "1-3",
+      "num": "1.3",
+      "name": "Credit Risk Scoring",
+      "short": "Credit Risk",
+      "status": "current",
+      "x": 330,
+      "y": 285,
+      "mission": "Predict which loan applicants will default, and tune the models so they catch more of the risky ones.",
+      "result": "In progress.",
+      "learned": [
+        "Tuning models instead of accepting their defaults",
+        "Handling data where the important cases are the rare ones",
+        "Choosing the decision cut-off on purpose, based on the cost of each kind of mistake"
+      ],
+      "skills": [
+        "Hyperparameter tuning",
+        "Random forest",
+        "XGBoost",
+        "Class imbalance",
+        "Threshold tuning"
+      ],
+      "repo": "https://github.com/jmb-python-developer/ML-03-credit-risk-scoring",
+      "world": 1
+    },
+    {
+      "id": "1-4",
+      "num": "1.4",
+      "name": "Model Serving",
+      "short": "Serving",
+      "status": "locked",
+      "x": 450,
+      "y": 180,
+      "mission": "Turn the 1.3 model into a web service that other software can call, packaged so it runs anywhere.",
+      "result": "Unlocks after 1.3.",
+      "learned": [
+        "Moving from a notebook to a real, repeatable training script",
+        "Serving predictions through an API that rejects bad input",
+        "Packaging the service in a container"
+      ],
+      "skills": [
+        "FastAPI",
+        "REST API",
+        "Docker",
+        "Deployment"
+      ],
+      "repo": null,
+      "world": 1
+    },
+    {
+      "id": "ach1",
+      "num": "ACHIEVEMENT",
+      "name": "Regression & Classification · Proficient",
+      "short": "Proficient",
+      "status": "locked",
+      "kind": "trophy",
+      "world": 1,
+      "eyebrow": "WORLD 1 ACHIEVEMENT",
+      "x": 585,
+      "y": 250,
+      "mission": "Awarded for taking regression and classification problems all the way from raw data to a tuned model served as an API.",
+      "result": "Unlocks when level 1.4 is cleared.",
+      "criteria": [
+        {
+          "text": "Regression project, end to end",
+          "done": true
+        },
+        {
+          "text": "Classification project, end to end",
+          "done": true
+        },
+        {
+          "text": "Models tuned, with class imbalance handled",
+          "done": false
+        },
+        {
+          "text": "Model served as an API in a container",
+          "done": false
+        }
+      ],
+      "learned": [],
+      "skills": [],
+      "repo": null
+    },
+    {
+      "id": "w2",
+      "num": "W2",
+      "name": "New Problem Types",
+      "short": "New problems",
+      "status": "locked",
+      "kind": "gate",
+      "x": 725,
+      "y": 280,
+      "mission": "New kinds of machine-learning problems beyond regression and classification.",
+      "result": "Opens after the World 1 achievement.",
+      "learned": [],
+      "skills": [],
+      "repo": null,
+      "world": 2,
+      "eyebrow": "WORLD 2"
+    },
+    {
+      "id": "dl",
+      "num": "DL",
+      "name": "Deep Learning",
+      "short": "Deep Learning",
+      "status": "locked",
+      "kind": "castle",
+      "x": 870,
+      "y": 200,
+      "mission": "Neural networks and deep learning.",
+      "result": "Opens after World 2.",
+      "learned": [],
+      "skills": [],
+      "repo": null,
+      "world": 3,
+      "eyebrow": "WORLD 3"
+    }
+  ],
+  "inventory": [
+    {
+      "name": "Supervised Machine Learning: Regression and Classification",
+      "issuer": "Stanford · DeepLearning.AI",
+      "url": "https://coursera.org/share/48ee7076fd82e9ee42f1a4c788a44fcb"
+    },
+    {
+      "name": "Advanced Learning Algorithms",
+      "issuer": "Stanford · DeepLearning.AI",
+      "url": "https://coursera.org/share/a6e47389a43a12f003efebdff40f9340"
+    },
+    {
+      "name": "Unsupervised Learning, Recommenders, Reinforcement Learning",
+      "issuer": "Stanford · DeepLearning.AI",
+      "url": "https://coursera.org/share/a1497bcee3e8886e066ca9f1e3abe669"
+    },
+    {
+      "name": "Python for Data Science, AI & Development",
+      "issuer": "IBM · Apr 2025",
+      "url": "https://coursera.org/verify/ZM7GAUJNFYFE"
+    },
+    {
+      "name": "Exploratory Data Analysis for Machine Learning",
+      "issuer": "IBM · Jul 2025",
+      "url": "https://coursera.org/account/accomplishments/verify/KER2N0IYGON5"
+    }
+  ]
+}
