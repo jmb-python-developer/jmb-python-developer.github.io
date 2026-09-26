@@ -5,7 +5,8 @@
     "tagline": "15 years building software. Now levelling up in machine learning, one finished project at a time.",
     "github": "https://github.com/jmb-python-developer",
     "linkedin": "https://www.linkedin.com/in/juanmarcosbruno/",
-    "ai_note": "I write the modelling code and make the analysis decisions myself: what to explore, which models to compare, how to evaluate them and what the results mean. I use LLMs the way I would on any engineering team: to scaffold projects, handle repetitive boilerplate, talk through concepts, and draft documentation and tooling (including this page), which I review and edit before it ships."
+    "ai_note": "I write the modelling code and make the analysis decisions myself: what to explore, which models to compare, how to evaluate them and what the results mean. I use LLMs the way I would on any engineering team: to scaffold projects, handle repetitive boilerplate, talk through concepts, and draft documentation and tooling (including this page), which I review and edit before it ships.",
+    "path_note": "Each level is harder and more structured than the last, moving step by step toward production-ready machine learning: clean pipelines, tuned models, and models served as real services."
   },
   "levels": [
     {
@@ -83,7 +84,8 @@
         "Threshold tuning"
       ],
       "repo": "https://github.com/jmb-python-developer/ML-03-credit-risk-scoring",
-      "world": 1
+      "world": 1,
+      "repo_private": true
     },
     {
       "id": "1-4",

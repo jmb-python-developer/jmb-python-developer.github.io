@@ -213,6 +213,8 @@ def render_map(data, interactive):
 def readme_snippet(data):
     icon = {"cleared": "✅", "current": "⭐", "locked": "🔒"}
     out = [
+        data["player"]["path_note"],
+        "",
         f'<a href="{SITE_URL}"><img src="assets/ml-quest-map.svg" width="100%" '
         f'alt="ML Quest world map: my machine-learning projects shown as game levels. Click to open the interactive version."></a>',
         "",
@@ -238,7 +240,10 @@ def readme_snippet(data):
             out.append(f"- {x}")
         out.append("")
         out.append("**Skills:** " + " · ".join(f"`{s}`" for s in l["skills"]))
-        if l["repo"]:
+        if l["repo"] and l.get("repo_private"):
+            out.append("")
+            out.append("🔒 *Repository private until this level is cleared.*")
+        elif l["repo"]:
             out.append("")
             out.append(f'[Open the project ↗]({l["repo"]})')
         out.append("")

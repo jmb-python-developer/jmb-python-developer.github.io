@@ -45,6 +45,8 @@
   .hud .gold{ color:var(--gold); } .hud .green{ color:var(--green); }
 
   /* map */
+  .route{ margin:0 0 14px; max-width:70ch; color:var(--text); font-size:1.02rem; }
+  .route::before{ content:"THE ROUTE  "; font-family:var(--px); font-weight:700; font-size:.82rem; letter-spacing:.1em; color:var(--trail); white-space:pre; }
   .map-frame{ overflow-x:auto; border-radius:14px; }
   .map-frame svg{ display:block; width:100%; min-width:720px; height:auto; }
   .node{ cursor:pointer; outline:none; }
@@ -85,6 +87,8 @@
     box-shadow: 0 4px 0 var(--gold-dk); transition: transform .08s, box-shadow .08s;
   }
   .btn:hover{ transform:translateY(2px); box-shadow:0 2px 0 var(--gold-dk); }
+  .private{ display:inline-block; font-family:var(--px); font-weight:500; font-size:.9rem; letter-spacing:.03em;
+    padding:9px 14px; border:2px dashed var(--slate); color:var(--soft); }
   .muted{ color:var(--soft); }
 
   /* inventory */
@@ -106,6 +110,9 @@
   section.ai-note{ margin-top:40px; border-top:2px solid var(--line); padding-top:22px; }
   section.ai-note h2{ font-family:var(--px); font-weight:700; font-size:1.2rem; margin:0 0 8px; color:var(--trail); }
   section.ai-note p{ margin:0; max-width:68ch; color:var(--soft); }
+  section.connect{ margin-top:34px; display:flex; flex-wrap:wrap; gap:14px 22px; align-items:center;
+    background:var(--panel); border:2px solid var(--line); padding:18px 22px; }
+  section.connect p{ margin:0; font-size:1.05rem; font-weight:600; }
   footer{ padding-block:40px 48px; color:var(--soft); font-size:.9rem; display:flex; flex-wrap:wrap; gap:8px 18px; }
   footer a{ color:var(--soft); }
 
@@ -135,6 +142,8 @@
 
   <div class="hud" id="hud"></div>
 
+  <p class="route" id="route"></p>
+
   <div class="map-frame">
 <!--MAP-->
   </div>
@@ -151,6 +160,11 @@
   <section class="ai-note">
     <h2>How I use AI</h2>
     <p id="ainote"></p>
+  </section>
+
+  <section class="connect">
+    <p>Hiring for software or ML engineering? Let's talk.</p>
+    <a class="btn" id="li2" href="#" target="_blank" rel="noopener">▶ CONNECT ON LINKEDIN</a>
   </section>
 
   <footer>
@@ -173,6 +187,8 @@
   document.getElementById("tagline").textContent = p.tagline;
   document.getElementById("role").textContent = p.title;
   document.getElementById("ainote").textContent = p.ai_note;
+  document.getElementById("route").textContent = p.path_note;
+  document.getElementById("li2").href = p.linkedin;
   ["gh","gh2"].forEach(function(id){ document.getElementById(id).href = p.github; });
   document.getElementById("li").href = p.linkedin;
 
@@ -227,7 +243,9 @@
       right.appendChild(el("h3", null, "DETAILS"));
       right.appendChild(el("p","muted","The next world on the map. Details appear when it opens."));
     }
-    if (l.repo){
+    if (l.repo && l.repo_private){
+      right.appendChild(el("span","private","🔒 Repository private until this level is cleared"));
+    } else if (l.repo){
       var a = el("a","btn", l.status === "cleared" ? "▶ OPEN PROJECT" : "▶ FOLLOW PROGRESS");
       a.href = l.repo; a.target = "_blank"; a.rel = "noopener"; right.appendChild(a);
     }
