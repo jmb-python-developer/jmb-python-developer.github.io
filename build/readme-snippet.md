@@ -2,7 +2,9 @@ Each level is harder and more structured than the last, moving step by step towa
 
 <a href="https://jmb-python-developer.github.io/"><img src="assets/ml-quest-map.svg" width="100%" alt="ML Quest world map: my machine-learning projects shown as game levels. Click to open the interactive version."></a>
 
-<sub>Click a level below to see what it covered, or open the <a href="https://jmb-python-developer.github.io/">interactive map</a>.</sub>
+<p align="center"><a href="https://jmb-python-developer.github.io/"><img src="assets/ml-quest-play.svg" width="300" alt="Play ML Quest: open the interactive map"></a></p>
+
+<sub>Or expand a level below for a quick summary.</sub>
 
 <details>
 <summary><b>✅ Level 1.0 · Exam Score Predictor</b> — Cleared</summary>

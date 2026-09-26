@@ -210,6 +210,24 @@ def render_map(data, interactive):
     return "\n".join(parts)
 
 
+def render_button():
+    """Gold pixel-style 'PLAY' button for the README, same look as the site's buttons."""
+    w, h = 340, 64
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h+6}" width="{w}" height="{h+6}" role="img" aria-label="Play ML Quest">
+<style>{font_face(True)}
+  .px{{font-family:'Pixelify Sans',ui-monospace,'SFMono-Regular',Menlo,monospace;font-weight:700;}}
+  .blink{{animation:bl 1s steps(1) infinite;}}
+  @keyframes bl{{50%{{opacity:0}}}}
+  @media (prefers-reduced-motion:reduce){{.blink{{animation:none}}}}
+</style>
+<rect x="0" y="6" width="{w}" height="{h}" fill="{C["current_dk"]}"/>
+<rect x="0" y="0" width="{w}" height="{h}" fill="{C["current"]}"/>
+<rect x="4" y="4" width="{w-8}" height="4" fill="#FFE08A"/>
+<polygon class="blink" points="34,20 34,44 52,32" fill="{C["current_dk"]}"/>
+<text x="{w/2+16}" y="42" text-anchor="middle" class="px" font-size="26" letter-spacing="2" fill="{C["current_dk"]}">PLAY ML QUEST</text>
+</svg>"""
+
+
 def readme_snippet(data):
     icon = {"cleared": "✅", "current": "⭐", "locked": "🔒"}
     out = [
@@ -218,8 +236,9 @@ def readme_snippet(data):
         f'<a href="{SITE_URL}"><img src="assets/ml-quest-map.svg" width="100%" '
         f'alt="ML Quest world map: my machine-learning projects shown as game levels. Click to open the interactive version."></a>',
         "",
-        "<sub>Click a level below to see what it covered, or open the "
-        f'<a href="{SITE_URL}">interactive map</a>.</sub>',
+        f'<p align="center"><a href="{SITE_URL}"><img src="assets/ml-quest-play.svg" width="300" alt="Play ML Quest: open the interactive map"></a></p>',
+        "",
+        "<sub>Or expand a level below for a quick summary.</sub>",
         "",
     ]
     for l in data["levels"]:
@@ -262,6 +281,7 @@ def main():
 
     (PROFILE / "assets").mkdir(exist_ok=True)
     (PROFILE / "assets" / "ml-quest-map.svg").write_text(render_map(data, interactive=False))
+    (PROFILE / "assets" / "ml-quest-play.svg").write_text(render_button())
     (ROOT / "build" / "readme-snippet.md").write_text(readme_snippet(data))
     print("built index.html, assets/ml-quest-map.svg, build/readme-snippet.md")
 
